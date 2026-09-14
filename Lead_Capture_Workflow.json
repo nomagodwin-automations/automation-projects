@@ -1,0 +1,328 @@
+{
+  "name": "Lead Capture Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formId": "ODYp87"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        96
+      ],
+      "id": "a52ba93a-2fe2-492c-9ede-3b9676f9695f",
+      "name": "Tally Trigger",
+      "webhookId": "fbe5fef8-7948-413c-ba94-e060ed46e29b",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1da8037-c429-404d-9f40-3d567901c4f1",
+              "name": "Full Name",
+              "value": "={{ $json.question_8kPKGx.value }}",
+              "type": "string"
+            },
+            {
+              "id": "2071ed38-1794-4c54-bec3-d207474e248c",
+              "name": "Phone Number",
+              "value": "={{ $json.question_0MJxL6.value }}",
+              "type": "number"
+            },
+            {
+              "id": "e0e2a0fb-2f9c-4b87-8ab7-31f23a9c4dd8",
+              "name": "Email Address",
+              "value": "={{ $json.question_zzrqZq.value }}",
+              "type": "string"
+            },
+            {
+              "id": "4e0571de-b1e8-4201-9b5e-3bb5822fd222",
+              "name": "Service of Interest",
+              "value": "={{ $json.question_5kGzLd.value }}",
+              "type": "string"
+            },
+            {
+              "id": "3491c00d-8707-460d-b026-0b9fb94ca2cd",
+              "name": "timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        96
+      ],
+      "id": "020d9a0a-ea75-4e89-b7d8-ddfbc494b17d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cce7c038-fbb1-4372-b31f-69b4a9f6f994",
+              "leftValue": "={{ $json['Full Name'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3e52da06-7c1c-4c6e-8ab5-df1951c4bd66",
+              "leftValue": "={{ $json['Phone Number']}}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        96
+      ],
+      "id": "40e65134-e5e6-44c8-a3ec-b3db14b10dbd",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM",
+          "mode": "list",
+          "cachedResultName": "Lead Capture Workflow",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 578999987,
+          "mode": "list",
+          "cachedResultName": "Error Logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM/edit#gid=578999987"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "flagged": "Yes",
+            "reason": "Missing required field",
+            "timestamp": "={{ $now }}",
+            "raw_data": "={{ $workflow.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "raw_data",
+              "displayName": "raw_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "flagged",
+              "displayName": "flagged",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        192
+      ],
+      "id": "bfdb9c2d-59df-4b2e-88a6-3be4f0796ea6",
+      "name": "Error logs"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM",
+          "mode": "list",
+          "cachedResultName": "Lead Capture Workflow",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1vgzuEqjBe-RxIz8XCeKMNXkvMYOaRZ4UUxeFUXXOmoM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $('Tally Trigger').item.json.question_8kPKGx.value }}",
+            "Email Address": "={{ $('Tally Trigger').item.json.question_zzrqZq.value }}",
+            "Phone Number": "={{ $('Tally Trigger').item.json.question_0MJxL6.value }}",
+            "Service of Interest": "={{ $('Tally Trigger').item.json.question_5kGzLd.value }}",
+            "Timestamp": "={{ $json.timestamp }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service of Interest",
+              "displayName": "Service of Interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "403eec1a-0f52-460c-a172-a5b54c4c0581",
+      "name": "Append row in sheet"
+    }
+  ],
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": null
+}

@@ -1,0 +1,1038 @@
+{
+  "name": "Banking Services Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5d71113c-0950-43eb-bf03-652cd5a16128",
+              "name": "=First Name",
+              "value": "={{ $json.question_lA0ARV.value.split(\" \")[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "2e62b154-9193-44ee-9fa6-921fb8113a45",
+              "name": "=Last Name",
+              "value": "={{ $json.question_lA0ARV.value.split(\" \")[1] }}",
+              "type": "string"
+            },
+            {
+              "id": "1af2ef5e-68ac-4546-85b1-5496fdf149f7",
+              "name": "Email Address",
+              "value": "={{ $json.question_R4Z4Lv.value }}",
+              "type": "string"
+            },
+            {
+              "id": "1122cd2c-2fb5-47fd-a019-87e279aaebda",
+              "name": "Phone Number",
+              "value": "={{ $json.question_oB0BO5.value }}",
+              "type": "number"
+            },
+            {
+              "id": "66be963c-ff69-4c58-9aa3-5c77b12285a2",
+              "name": "Service Required",
+              "value": "={{ $json.question_Vl9l8N.value }}",
+              "type": "string"
+            },
+            {
+              "id": "203ae0d3-8673-429d-af31-262c148f761a",
+              "name": "Further Requests",
+              "value": "={{ $json.question_OPjP0k.value }}",
+              "type": "string"
+            },
+            {
+              "id": "bc22c1fa-2a00-4eaa-a9ec-82c1798d7b36",
+              "name": "timestamp",
+              "value": "={{ $json.createdAt }}",
+              "type": "string"
+            },
+            {
+              "id": "18f311d0-dc23-4914-b888-a621fc029270",
+              "name": "Priority",
+              "value": "normal",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        272
+      ],
+      "id": "80ff1d16-db5c-481a-a511-a8314e324a7d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "formId": "GxJlEQ"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 2,
+      "position": [
+        -992,
+        272
+      ],
+      "id": "e0cee7c6-3ca6-4af3-b977-8399eddbd547",
+      "name": "Tally Trigger",
+      "webhookId": "75e9bc37-3e7f-4063-a948-c6cc8fc99ad1",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "13a89003-38a9-4397-9034-2edb127d65b9",
+                    "leftValue": "={{ $json['Service Required'] }}",
+                    "rightValue": "Account Opening",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "36d0dfb1-f0ce-4e25-b308-dea9237c28be",
+                    "leftValue": "={{ $json['Service Required'] }}",
+                    "rightValue": "Loans",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "dc2706c6-b8cf-4fe9-bde1-c1b3d445a298",
+                    "leftValue": "={{ $json['Service Required'] }}",
+                    "rightValue": "Card Issues",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2989d0fb-f3b3-42d9-8817-b00d2a57af88",
+                    "leftValue": "={{ $json['Service Required'] }}",
+                    "rightValue": "Transfers",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "11f1ff1b-b2c2-4bd2-8634-852c88d7be64",
+                    "leftValue": "={{ $json['Service Required'] }}",
+                    "rightValue": "Chat with Customer Agent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        224
+      ],
+      "id": "d2acbdd3-c17c-46ce-a5d5-2f5807a831a0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "Your Account Opening Request – First Bank",
+        "emailType": "text",
+        "message": "=Hi {{ $json[\"First Name\"] }},  \n\nThank you for your interest in opening an account with First Bank.  One of our onboarding specialists will contact you within 24 hours to guide you through the next steps.  \n\nWarm regards, \nFirst Bank Customer Service",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "45542ea0-23dd-42be-b2bd-e8e4cb3128f0",
+      "name": "Account Opening",
+      "webhookId": "29260a8c-96e9-4ee0-a2a7-918bf5a8d88d"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "Your Loan Enquiry – First Bank",
+        "emailType": "text",
+        "message": "=Hi {{ $json[\"First Name\"] }},  \n\nThank you for reaching out about our loan products.  \n\nA member of our loans team will be in touch shortly to discuss the best options available for you.  \n\nWarm regards, \nFirst Bank Customer Service",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        192
+      ],
+      "id": "b3281c02-f2bb-43d7-9959-d3d891aacbdb",
+      "name": "Loans",
+      "webhookId": "4feeb5b0-8578-454a-8f92-6f95338a9d4c"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "Your Card Issue Report – First Bank",
+        "message": "=Hi {{ $json['First Name'] }},\n\nWe've received your report regarding a card issue. Our cards support team will review your case and respond within 2 business hours.  \n\nWarm regards, First Bank Customer Service",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        384
+      ],
+      "id": "0b100a66-30a6-4684-a851-fd34514a4b0a",
+      "name": "Card Issues",
+      "webhookId": "c7a828e3-7a2c-4882-9d89-8b72be86418b"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['Email Address'] }}",
+        "subject": "Your Transfer Enquiry – First Bank",
+        "emailType": "text",
+        "message": "=Hi {{ $json['First Name'] }},\n\nThank you for contacting us about a transfer. Our team will investigate and get back to you as soon as possible.  \n\nWarm regards, \nFirst Bank Customer Service",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        576
+      ],
+      "id": "5a4c15a1-3672-4db1-93f2-a902f0dbf9cc",
+      "name": "Transfers",
+      "webhookId": "0c993371-88b3-4680-84c5-fde8c1235c4e"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI",
+          "mode": "list",
+          "cachedResultName": "Banking System Service Form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "First Name": "={{ $('Edit Fields').item.json['First Name'] }}",
+            "Last Name": "={{ $('Edit Fields').item.json['Last Name'] }}",
+            "Email Address": "={{ $('Edit Fields').item.json['Email Address'] }}",
+            "Phone Number": "={{ $('Edit Fields').item.json['Phone Number'] }}",
+            "Service Required": "={{ $('Edit Fields').item.json['Service Required'] }}",
+            "Response Sent": "Yes",
+            "Further Requests": "={{ $('Edit Fields').item.json['Further Requests'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Further Requests",
+              "displayName": "Further Requests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Response Sent",
+              "displayName": "Response Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "37442a68-d575-4692-945b-b9131b49b6d5",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI",
+          "mode": "list",
+          "cachedResultName": "Banking System Service Form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "First Name": "={{ $json['First Name'] }}",
+            "Last Name": "={{ $json['Last Name'] }}",
+            "Email Address": "={{ $json['Email Address'] }}",
+            "Phone Number": "={{ $json['Phone Number'] }}",
+            "Service Required": "={{ $json['Service Required'] }}",
+            "Further Requests": "={{ $json['Further Requests'] }}",
+            "Response Sent": "Yes"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Further Requests",
+              "displayName": "Further Requests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response Sent",
+              "displayName": "Response Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        192
+      ],
+      "id": "d5b69f62-ffdc-4b08-9ac8-136399f9f309",
+      "name": "Append row in sheet1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI",
+          "mode": "list",
+          "cachedResultName": "Banking System Service Form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Email Address": "={{ $('Edit Fields').item.json['Email Address'] }}",
+            "Service Required": "={{ $('Edit Fields').item.json['Service Required'] }}",
+            "Further Requests": "={{ $('Edit Fields').item.json['Further Requests'] }}",
+            "Response Sent": "Yes",
+            "Timestamp": "={{ $now }}",
+            "First Name": "={{ $('Edit Fields').item.json['First Name'] }}",
+            "Last Name": "={{ $('Edit Fields').item.json['Last Name'] }}",
+            "Phone Number": "={{ $('Edit Fields').item.json['Phone Number'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Further Requests",
+              "displayName": "Further Requests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response Sent",
+              "displayName": "Response Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        384
+      ],
+      "id": "dbb0c506-4cdc-4667-a91a-d6091e203d46",
+      "name": "Append row in sheet2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI",
+          "mode": "list",
+          "cachedResultName": "Banking System Service Form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Edit Fields').item.json.timestamp }}",
+            "First Name": "={{ $('Edit Fields').item.json['First Name'] }}",
+            "Last Name": "={{ $('Edit Fields').item.json['Last Name'] }}",
+            "Email Address": "={{ $('Edit Fields').item.json['Email Address'] }}",
+            "Phone Number": "={{ $('Edit Fields').item.json['Phone Number'] }}",
+            "Service Required": "={{ $('Edit Fields').item.json['Service Required'] }}",
+            "Further Requests": "={{ $('Edit Fields').item.json['Further Requests'] }}",
+            "Response Sent": "Yes"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Further Requests",
+              "displayName": "Further Requests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response Sent",
+              "displayName": "Response Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        576
+      ],
+      "id": "fb2d0bcb-68da-4b5a-ac54-14c1516d9658",
+      "name": "Append row in sheet3"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI",
+          "mode": "list",
+          "cachedResultName": "Banking System Service Form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 771746287,
+          "mode": "list",
+          "cachedResultName": "Customer Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1u4g-YvrRPqkWluUUchkVcwWDfRDt9siKDp1GXbEo6iI/edit#gid=771746287"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now }}",
+            "First Name": "={{ $('Edit Fields').item.json['First Name'] }}",
+            "Last Name": "={{ $('Edit Fields').item.json['Last Name'] }}",
+            "Response Sent": "Pending - Chat Agent",
+            "Service Required": "={{ $('Edit Fields').item.json['Service Required'] }}",
+            "Phone Number": "={{ $('Edit Fields').item.json['Phone Number'] }}",
+            "Email Address": "={{ $('Edit Fields').item.json['Email Address'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Last Name",
+              "displayName": "Last Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Service Required",
+              "displayName": "Service Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Response Sent",
+              "displayName": "Response Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        768
+      ],
+      "id": "753194e4-6c8c-41ab-8245-8f846b99a2b0",
+      "name": "Append row in sheet4"
+    },
+    {
+      "parameters": {
+        "content": "Tally API Key\n\ntly-l6JZIKgmsadGkLFpQGr0CwfBQtHuMNsh",
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        208
+      ],
+      "id": "ca04d905-7a4b-47fc-92b4-80e308c88748",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Account Opening",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loans",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Card Issues",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Transfers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Account Opening": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loans": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Card Issues": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transfers": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": {
+    "Tally Trigger": [
+      {
+        "json": {
+          "id": "4aB6Jyk",
+          "formId": "GxJlEQ",
+          "formName": "Banking System Service Form",
+          "respondentId": "81JZG5z",
+          "createdAt": "2026-04-19T17:11:22.000Z",
+          "question_lA0ARV": {
+            "label": "Full Name",
+            "value": "Peter Parker",
+            "type": "INPUT_TEXT"
+          },
+          "question_R4Z4Lv": {
+            "label": "Email Address",
+            "value": "spiderparker@pete.com",
+            "type": "INPUT_EMAIL"
+          },
+          "question_oB0BO5": {
+            "label": "Phone Number",
+            "value": 9165604204,
+            "type": "INPUT_NUMBER"
+          },
+          "question_Vl9l8N": {
+            "label": "Service Required",
+            "value": "Chat with Customer Agent",
+            "type": "MULTIPLE_CHOICE"
+          },
+          "question_OPjP0k": {
+            "label": "Further Requests",
+            "value": null,
+            "type": "TEXTAREA"
+          }
+        }
+      }
+    ]
+  },
+  "triggerCount": 0,
+  "meta": null
+}

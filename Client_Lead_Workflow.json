@@ -1,0 +1,460 @@
+{
+  "name": "Client Lead Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f09e0065-3760-4a27-8874-35e419c50301",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -288,
+        96
+      ],
+      "id": "e01a01ab-c5fa-4219-84ae-ae4b660b970b",
+      "name": "Webhook",
+      "webhookId": "f09e0065-3760-4a27-8874-35e419c50301"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f61f081c-7b28-45cc-b49b-37b153384ab3",
+              "name": "Full Name",
+              "value": "={{ $json.body.data.fields[0].value }}",
+              "type": "string"
+            },
+            {
+              "id": "1af2ef5e-68ac-4546-85b1-5496fdf149f7",
+              "name": "Email Address",
+              "value": "={{ $json.body.data.fields[1].value }}",
+              "type": "string"
+            },
+            {
+              "id": "1122cd2c-2fb5-47fd-a019-87e279aaebda",
+              "name": "Phone Number",
+              "value": "={{ $json.body.data.fields[2].value }}",
+              "type": "number"
+            },
+            {
+              "id": "c062ff16-8ab9-4a55-9f4d-e931a3467ff4",
+              "name": "Company Name",
+              "value": "={{ $json.body.data.fields[3].value }}",
+              "type": "string"
+            },
+            {
+              "id": "203ae0d3-8673-429d-af31-262c148f761a",
+              "name": "Message",
+              "value": "={{ $json.body.data.fields[4].value }}",
+              "type": "string"
+            },
+            {
+              "id": "bc22c1fa-2a00-4eaa-a9ec-82c1798d7b36",
+              "name": "Submitted At",
+              "value": "={{ $json.body.createdAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -64,
+        96
+      ],
+      "id": "2b66ac02-f8fc-4e08-94b2-dc485d4a4a79",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b211a3b4-dbf1-43c6-a28b-228e4ba1810b",
+              "leftValue": "={{ $json['Full Name'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "0b6d0182-e3ab-45d7-b110-6991bda9ec98",
+              "leftValue": "={{ $json['Email Address'] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        96
+      ],
+      "id": "ec42bd5e-b982-4c93-acb4-a6dd3ee3a483",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ",
+          "mode": "list",
+          "cachedResultName": "Lead Capture Demo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full Name": "={{ $json['Full Name'] }}",
+            "Email Address": "={{ $json['Email Address'] }}",
+            "Phone Number": "={{ $json['Phone Number']}}",
+            "Company Name": "={{ $json['Company Name'] }}",
+            "Message": "={{ $json['Message'] }}",
+            "Submitted At": "={{ $json['Submitted At'] }}"
+          },
+          "matchingColumns": [
+            "Email Address"
+          ],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Address",
+              "displayName": "Email Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Submitted At",
+              "displayName": "Submitted At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "beed28a6-245b-4dad-be75-cf8328beeb80",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {
+        "sendTo": "lintslint@gmail.com, phostechandsecurities@gmail.com",
+        "subject": "Client Lead Form Update",
+        "emailType": "text",
+        "message": "=New lead received!  \n\nName: {{ $('Webhook').item.json.body.data.fields[0].value }}\nEmail: {{ $('Webhook').item.json.body.data.fields[1].value }}\nPhone: {{ $('Webhook').item.json.body.data.fields[2].value }}\nCompany: {{ $('Webhook').item.json.body.data.fields[3].value }}\nMessage: {{ $('Webhook').item.json.body.data.fields[4].value }}\n\nSubmitted: {{ $('Edit Fields').item.json['Submitted At'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -16
+      ],
+      "id": "695ba486-6c76-4bdd-8746-bd6a169aadbd",
+      "name": "Send a message",
+      "webhookId": "9a16fc1c-9d88-40b7-971a-363d41be7a2e"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ",
+          "mode": "list",
+          "cachedResultName": "Lead Capture Demo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 676929818,
+          "mode": "list",
+          "cachedResultName": "Error logs",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JusLsQ3f3TWjakESVL-hG_hd60hHJsVsNy3WIIr0ubQ/edit#gid=676929818"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Reason": "=Missing required fields",
+            "Flagged": "Yes",
+            "Raw Data": "={{ $workflow }}",
+            "Submitted At": "={{ $('Edit Fields').item.json['Submitted At'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Submitted At",
+              "displayName": "Submitted At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Raw Data",
+              "displayName": "Raw Data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Flagged",
+              "displayName": "Flagged",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        208
+      ],
+      "id": "8790e7e2-a89f-46ec-8560-28dbcb1fe1e0",
+      "name": "Error Logs"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "hebron.app.n8n.cloud",
+            "user-agent": "Tally Webhooks",
+            "content-length": "812",
+            "accept": "application/json, text/plain, */*",
+            "accept-encoding": "gzip, br",
+            "baggage": "sentry-environment=production,sentry-release=8f570e754db1a2d8ecb3226f9f959f2040aa16dd,sentry-public_key=6af4b6673f1648edaa8fef3f2ca43405,sentry-trace_id=816a743ac68f47c794562ba7c0335725,sentry-org_id=407628,sentry-sampled=false,sentry-sample_rand=0.6796983454367155,sentry-sample_rate=0",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "34.96.41.112",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BE",
+            "cf-ray": "9e9246f1083c88b0-LHR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "sentry-trace": "816a743ac68f47c794562ba7c0335725-8e07be2bfed02796-0",
+            "x-forwarded-for": "34.96.41.112, 172.70.86.2",
+            "x-forwarded-host": "hebron.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-88-68dff86f78-g78lh",
+            "x-is-trusted": "yes",
+            "x-real-ip": "34.96.41.112"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "eventId": "c2f439fe-04a3-49ba-8b74-550cefa2d911",
+            "eventType": "FORM_RESPONSE",
+            "createdAt": "2026-04-08T15:24:07.135Z",
+            "data": {
+              "responseId": "M1XXLjk",
+              "submissionId": "M1XXLjk",
+              "respondentId": "NpJNxNb",
+              "formId": "7RvOaP",
+              "formName": "Client lead form",
+              "createdAt": "2026-04-08T15:24:07.000Z",
+              "fields": [
+                {
+                  "key": "question_axGVAB",
+                  "label": "Full Name",
+                  "type": "INPUT_TEXT",
+                  "value": "Osahenoma Idehen"
+                },
+                {
+                  "key": "question_6kxoWk",
+                  "label": "Email Address",
+                  "type": "INPUT_EMAIL",
+                  "value": "nomagodwin5@gmail.com"
+                },
+                {
+                  "key": "question_7DZGaZ",
+                  "label": "Phone Number",
+                  "type": "INPUT_NUMBER",
+                  "value": 9165604204
+                },
+                {
+                  "key": "question_bkOPYL",
+                  "label": "Company Name",
+                  "type": "INPUT_TEXT",
+                  "value": "Tech and Learn"
+                },
+                {
+                  "key": "question_AJ8Z4D",
+                  "label": "Message/enquiry",
+                  "type": "TEXTAREA",
+                  "value": "I need your mentorship service on my expanding my team"
+                }
+              ]
+            }
+          },
+          "webhookUrl": "https://hebron.app.n8n.cloud/webhook-test/f09e0065-3760-4a27-8874-35e419c50301",
+          "executionMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "triggerCount": 0,
+  "meta": null
+}
