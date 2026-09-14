@@ -1,0 +1,265 @@
+{
+  "name": "TIP - User Identity.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tipidentity",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -672,
+        96
+      ],
+      "id": "451542a4-2a23-46ff-aaf7-d87932a37e51",
+      "name": "Webhook",
+      "webhookId": "2911b087-899e-4f6a-b2ef-b23326605571"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $json.body.phone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        96
+      ],
+      "id": "a33e2efd-b753-4e26-af49-fa9220e4b9bc",
+      "name": "Fetch User by Phone",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "19d017f4-c54d-4e88-8586-c3fd5ec0c189",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "d2c3873d-5d89-41d7-a62d-7649daa2744f",
+      "name": "User Phone Exists?",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "tableId": "users",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $('Webhook').first().json.body.phone }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('Webhook').first().json.body.name || 'New User' }}"
+            },
+            {
+              "fieldId": "upload_count",
+              "fieldValue": "0"
+            },
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $randomUUID }}"
+            },
+            {
+              "fieldId": "preferred_currency",
+              "fieldValue": "NGN"
+            },
+            {
+              "fieldId": "first_upload_at",
+              "fieldValue": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        192
+      ],
+      "id": "73dfd334-dbe8-47a3-8e3e-4c8bcc66b008",
+      "name": "Create User",
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  \"user_id\": $json.id,\n  \"name\": $json.name,\n  \"upload_count\": $json.upload_count,\n  \"is_new_user\": false,\n\"first_upload_at\": $json.created_at\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9a3d5355-3353-4e76-a498-3c61e12e1f45",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n{\n  \"user_id\": $json.id,\n  \"name\": $json.name,\n  \"upload_count\": 0,\n  \"is_new_user\": true,\n\"first_upload_at\": $json.created_at\n}\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        192
+      ],
+      "id": "c4b5a35b-57ee-4b9c-be91-642570d4bd3f",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch User by Phone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch User by Phone": {
+      "main": [
+        [
+          {
+            "node": "User Phone Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Phone Exists?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create User": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "noma-automations001.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.54.0",
+            "content-length": "33",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "54.86.50.139",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "a15684aa7b4282c6-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "postman-token": "0196ae5a-0e01-4bed-b004-a24fe037478d",
+            "x-forwarded-for": "54.86.50.139, 172.70.175.180",
+            "x-forwarded-host": "noma-automations001.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-88-68dff86f78-qtw9m",
+            "x-is-trusted": "yes",
+            "x-real-ip": "54.86.50.139"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "phone": "+2340000000000"
+          },
+          "webhookUrl": "https://noma-automations001.app.n8n.cloud/webhook-test/tip-identity",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

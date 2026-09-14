@@ -1,0 +1,1057 @@
+{
+  "name": "Fin. Intel Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tipupload",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "data"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        928
+      ],
+      "id": "0ca9089b-a0f1-42f1-971e-1199a587e48a",
+      "name": "Webhook",
+      "webhookId": "3c544f1d-1a9f-4c5f-8f36-0758377f7657"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": "AQ.Ab8RN6KL-b5wl39yZdjhhqFMpeIfbHu0X38_bGUK92hYARz5Lw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2032,
+        928
+      ],
+      "id": "ed1d751a-483e-41be-9438-8ef7a5d74da0",
+      "name": "Extract Transactions"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst pdfText = item.json.text;\nconst uploadCount = item.json.upload_count || 0;\nconst isFirstUpload = uploadCount === 0;\nconst preferredCurrency = item.json.preferred_currency || 'NGN';\n\nconst existingMerchants = item.json.merchant_map || [];\nconst merchantContext = existingMerchants.length > 0\n  ? `Known merchants for this user: ${JSON.stringify(existingMerchants)}`\n  : 'No prior merchant history — this is the user\\'s first upload.';\n\nconst prompt = `You are a financial data extraction engine for a Nigerian user.\n\nUSER CONTEXT:\n- Upload number: ${uploadCount + 1}\n- First time user: ${isFirstUpload}\n- Currency: ${preferredCurrency}\n- ${merchantContext}\n\nExtract every transaction from this bank statement text. Return ONLY a JSON array with no explanation, no markdown, no code fences. Each object must have exactly these fields:\n- date (YYYY-MM-DD)\n- raw_description (exactly as it appears in the statement)\n- amount (positive number, no commas)\n- type (\"debit\" if the amount was negative, \"credit\" if positive)\n- channel (use the Channel column value: NIP, POS, System, E-Channel)\n- reference (the Transaction Reference value)\n- counterparty (the Counterparty value, or null if not present)\n\nBANK STATEMENT TEXT:\n${pdfText}`;\n\nconst payload = {\n  contents: [{ parts: [{ text: prompt }] }],\n  generationConfig: { temperature: 0.1 }\n};\n\nconst userId = item.json.id || item.json.user_id || $('Webhook').first().json.body.user_id;\n\nif (!userId) throw new Error('user_id missing from all sources — check Merge output');\n\nreturn [{\n  json: {\n    payload,\n    user_id: userId,\n    upload_id: $('Webhook').first().json.body.upload_id,\n    upload_count: uploadCount,\n    is_first_upload: isFirstUpload\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        928
+      ],
+      "id": "1f21244f-467b-4fc8-8832-c75a133bc9d2",
+      "name": "Prepare Gemini Payload"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        1136
+      ],
+      "id": "b876abc3-9b3c-454f-a6f1-3c09a4355454",
+      "name": "Extract from File",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst rawText = item.json.candidates[0].content.parts[0].text;\n\nlet cleaned = rawText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\n// Replace smart apostrophes that break JSON.parse\ncleaned = cleaned.replace(/\\u2019/g, \"'\").replace(/\\u2018/g, \"'\");\n\nlet transactions;\ntry {\n  transactions = JSON.parse(cleaned);\n} catch(e) {\n  return [{ json: { error: e.message, previewAt5600: cleaned.substring(5580, 5650) } }];\n}\n\nconst user_id = $('Prepare Gemini Payload').first().json.user_id;\nconst upload_id = $('Prepare Gemini Payload').first().json.upload_id;\n\nconst enriched = transactions.map(tx => {\n  const dateValue = tx.date || null;\n  return {\n    transaction_date: dateValue,\n    raw_description: tx.raw_description || null,\n    amount: tx.amount || null,\n    type: tx.type || null,\n    channel: tx.channel || null,\n    reference: tx.reference || null,\n    counterparty: tx.counterparty || null,\n    merchant_name: null,\n    category: null,\n    confidence_score: null,\n    currency: 'NGN',\n    user_id,\n    upload_id,\n    month_year: dateValue ? dateValue.substring(0, 7) : null,\n    created_at: new Date().toISOString()\n  };\n});\n\nreturn enriched.map(tx => ({ json: tx }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        928
+      ],
+      "id": "9febc62f-5c21-496d-b07e-90b3decf8994",
+      "name": "Parse Transactions",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst transactions = items.map(item => item.json);\n\nconst user_id = transactions[0].user_id;\nconst upload_id = transactions[0].upload_id;\n\nreturn [{\n  json: {\n    user_id,\n    upload_id,\n    transactions,\n    transaction_count: transactions.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3600,
+        1024
+      ],
+      "id": "49347a28-1b40-4148-ada2-4e631b368fcf",
+      "name": "Aggregate for Intelligence:"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst { patterns } = item.json;\n\n// transactions/user_id/upload_id no longer arrive directly —\n// Aggregate Patterns for Story sits between this node and Aggregate for Intelligence now\nconst intelligenceData = $('Aggregate for Intelligence:').first().json;\nconst { transactions, user_id, upload_id } = intelligenceData;\n\n// Compute quick stats in JS so Gemini doesn't have to\nconst debits = transactions.filter(t => t.type === 'debit');\nconst credits = transactions.filter(t => t.type === 'credit');\nconst totalSpent = debits.reduce((sum, t) => sum + t.amount, 0);\nconst totalEarned = credits.reduce((sum, t) => sum + t.amount, 0);\n\nconst spendByCategory = {};\ndebits.forEach(t => {\n  const key = t.raw_description;\n  spendByCategory[key] = (spendByCategory[key] || 0) + t.amount;\n});\n\nconst topCategories = Object.entries(spendByCategory)\n  .sort((a, b) => b[1] - a[1])\n  .slice(0, 5)\n  .map(([name, amount]) => ({ name, amount }));\n\n// Format detected patterns into readable lines for the prompt\nconst patternsSummary = patterns.map(p =>\n  `- ${p.pattern_type} (${p.pattern_key}): ${JSON.stringify(p.pattern_value)} [confidence: ${p.confidence}]`\n).join('\\n');\n\nconst prompt = `You are a personal finance storyteller for a Nigerian user. Analyze these transactions and the detected behavioral patterns to generate a Spotify Wrapped-style financial story.\n\nSTATS:\n- Total earned: ₦${totalEarned.toLocaleString()}\n- Total spent: ₦${totalSpent.toLocaleString()}\n- Net: ₦${(totalEarned - totalSpent).toLocaleString()}\n- Transaction count: ${transactions.length}\n- Top spending categories: ${JSON.stringify(topCategories)}\n\nDETECTED BEHAVIORAL PATTERNS — reference these directly to make the story personal, not generic:\n${patternsSummary}\n\nFULL TRANSACTIONS:\n${JSON.stringify(transactions.map(t => ({\n  date: t.transaction_date,\n  description: t.raw_description,\n  amount: t.amount,\n  type: t.type,\n  channel: t.channel,\n  counterparty: t.counterparty\n})))}\n\nReturn ONLY a JSON object with this exact structure, no markdown, no explanation:\n{\n  \"headline\": \"one punchy sentence summarizing the period\",\n  \"summary\": \"2-3 sentence narrative of their financial behaviour\",\n  \"cards\": [\n    { \"type\": \"income\", \"title\": \"...\", \"value\": \"...\", \"insight\": \"...\" },\n    { \"type\": \"spending\", \"title\": \"...\", \"value\": \"...\", \"insight\": \"...\" },\n    { \"type\": \"behaviour\", \"title\": \"...\", \"value\": \"...\", \"insight\": \"...\" },\n    { \"type\": \"advice\", \"title\": \"...\", \"value\": \"...\", \"insight\": \"...\" }\n  ],\n  \"advice_flags\": [\"flag1\", \"flag2\"],\n  \"month_year\": \"2025-01\"\n}`;\n\nconst payload = {\n  contents: [{ parts: [{ text: prompt }] }],\n  generationConfig: { temperature: 0.4 }\n};\n\nreturn [{ json: { payload, user_id, upload_id } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3824,
+        1024
+      ],
+      "id": "25236e55-5ccd-4733-8909-2ce10df3ebc0",
+      "name": "Prepare Story Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": "AQ.Ab8RN6KL-b5wl39yZdjhhqFMpeIfbHu0X38_bGUK92hYARz5Lw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4048,
+        1024
+      ],
+      "id": "b25a6859-d71d-4f00-beb9-5717e5f3c015",
+      "name": "Generate Story"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst rawText = item.json.candidates[0].content.parts[0].text;\nconst cleaned = rawText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\nconst story = JSON.parse(cleaned);\n\n// Pull transactions from upstream — same pattern as Prepare Story Prompt\nconst intelligenceData = $('Aggregate for Intelligence:').first().json;\n\nreturn [{\n  json: {\n    ...story,\n    transactions: intelligenceData.transactions || [],\n    user_id: intelligenceData.user_id,\n    upload_id: intelligenceData.upload_id,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4272,
+        1024
+      ],
+      "id": "d7de2c85-f0a0-41c3-a671-2fff09efe59e",
+      "name": "Parse Story Response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\n// Story fields are spread directly on item.json, not nested under 'story'\nconst { user_id, upload_id } = item.json;\n\n// Pull month_year from transactions\nconst transactions = $('Prepare Classification Payload').first().json.transactions;\nconst month_year = transactions && transactions.length > 0 ? transactions[0].month_year : null;\n\n// The whole item.json IS the story — exclude non-story fields for storage\nconst { transactions: _, user_id: __, upload_id: ___, ...storyData } = item.json;\n\nreturn [{\n  json: {\n    user_id,\n    upload_id,\n    month_year,\n    story_json: storyData,\n    advice_flags: storyData.advice_flags || null,\n    patterns_snapshot: null,\n    upload_count_at_time: item.json.upload_count || 0,\n    is_first_upload: item.json.is_first_upload !== undefined ? item.json.is_first_upload : true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4496,
+        1024
+      ],
+      "id": "4d5f84bc-139b-4566-a792-19f0c2bf29f2",
+      "name": "Prepare Insights Row"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.story_json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        4944,
+        1024
+      ],
+      "id": "1ce33ce8-426f-44c9-8220-56a43b5e019c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "tableId": "insights_history",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4720,
+        1024
+      ],
+      "id": "5ce0bcfd-3d47-4394-a2e2-21bcaeb88a7a",
+      "name": "insights_history",
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "transactions",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3376,
+        1024
+      ],
+      "id": "db63a7bb-c3bc-4534-9fe4-97a3c4b65d93",
+      "name": "transactions",
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1632,
+        912
+      ],
+      "id": "54b9f911-0080-4d9e-a042-2e724120ade0",
+      "name": "Merge",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "users",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $('Webhook').first().json.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        688
+      ],
+      "id": "40d04eb0-b1ac-4989-bd5b-87c4cc1c44d5",
+      "name": " Fetch User Profile",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "merchant_map",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $('Webhook').first().json.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        928
+      ],
+      "id": "96bcdc5b-1c28-4e0f-bf41-815b72e4ff97",
+      "name": "Fetch Merchant Map",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst transactions = items.map((item) => item.json);\n\nreturn [\n  {\n    json: {\n      transactions,\n      transaction_count: transactions.length,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        928
+      ],
+      "id": "fdcf0b94-cc7c-4128-9f6a-91fa38ab7232",
+      "name": "Aggregate for Classification"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": "AQ.Ab8RN6LNzh99kPM_MmESItKYcyhfg_VlzGwu--kA2XdS-Tmtvw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2928,
+        928
+      ],
+      "id": "f5906b46-0ce3-4301-b4d8-21818a539861",
+      "name": "Resolve & Classify",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst { transactions } = item.json;\n\n// Send only the fields Gemini needs for classification — keeps the prompt lean\nconst txForClassification = transactions.map((tx, index) => ({\n  index,\n  raw_description: tx.raw_description,\n  counterparty: tx.counterparty,\n  amount: tx.amount,\n  type: tx.type,\n  channel: tx.channel\n}));\n\nconst prompt = `You are a financial classification engine for a Nigerian user. You will receive an array of bank transactions. For EACH transaction, resolve a clean merchant name and assign a spending category.\n\nCATEGORIES (use exactly one per transaction): food, transport, bills, shopping, subscriptions, income, transfers, fees, airtime_data, entertainment, other\n\nRULES:\n- merchant_name: a clean, human-readable name. If raw_description and counterparty give no real clue (e.g. \"Account Maintenance\", \"Stamp Duty\"), set merchant_name to the bank/system itself (e.g. \"Bank Charges\").\n- category: \"fees\" for Account Maintenance, Stamp Duty, and similar bank charges. \"income\" for Salary Credit, Invoice Settlement, Customer Deposit, Contract Payment when type is credit. \"transfers\" for generic Transfer to/from Supplier or Client Payment with no specific merchant. \"airtime_data\" for Airtime Purchase and Data Purchase.\n- confidence_score: 0.0 to 1.0 — how sure you are about this classification. Generic/ambiguous descriptions get lower scores (0.4-0.6). Clear matches get high scores (0.85-1.0).\n\nIMPORTANT: \n- merchant_name must never contain apostrophes or single quotes. \n- Replace possessives with alternatives: \"Shoprites\" not \"Shoprite's\", \"Traders\" not \"Trader's\", \"Mamas Kitchen\" not \"Mama's Kitchen\".\n\nTRANSACTIONS:\n${JSON.stringify(txForClassification)}\n\nReturn ONLY a JSON array, same order, same length as input, no markdown, no explanation. Each object: { \"index\": number, \"merchant_name\": string, \"category\": string, \"confidence_score\": number }`;\n\nconst payload = {\n  contents: [{ parts: [{ text: prompt }] }],\n  generationConfig: { temperature: 0.1 }\n};\n\nreturn [{\n  json: {\n    payload,\n    transactions  // pass the full original transactions through for the merge step later\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        928
+      ],
+      "id": "015ac233-4a41-4911-bff4-3156a8adcea3",
+      "name": "Prepare Classification Payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst transactions = items.map(item => item.json);\n\nconst user_id = transactions[0].user_id;\n\nconst merchantMap = {};\ntransactions.forEach(tx => {\n  // Guard against missing raw_description\n  const key = tx.raw_description;\n  if (!key) return; // skip transactions with no description\n  \n  if (!merchantMap[key]) {\n    merchantMap[key] = {\n      user_id,\n      raw_pattern: key,\n      merchant_name: tx.merchant_name || key, // fallback to raw if no merchant resolved\n      category: tx.category || 'other',\n      occurrence_count: 1\n    };\n  } else {\n    merchantMap[key].occurrence_count += 1;\n  }\n});\n\n// Filter out any entries that still have null raw_pattern (safety net)\nconst validEntries = Object.values(merchantMap).filter(m => m.raw_pattern && m.user_id);\n\nreturn validEntries.map(m => ({ json: m }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3376,
+        832
+      ],
+      "id": "f5a62d80-8805-44ae-90c3-0d98e75ff54a",
+      "name": "Prepare Merchant Map Upsert"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst rawText = item.json.candidates[0].content.parts[0].text;\nlet cleaned = rawText\n  .replace(/```json\\n?/g, '')\n  .replace(/```\\n?/g, '')\n  .trim();\n\nlet classifications;\n\n// Attempt 1 — standard parse\ntry {\n  classifications = JSON.parse(cleaned);\n} catch(e1) {\n  // Attempt 2 — swap curly apostrophes before parsing\n  try {\n    const s = cleaned.replace(/\"((?:[^\"\\\\]|\\\\.)*)\"/g, (m, inner) =>\n      '\"' + inner.replace(/'/g, '\\u2019') + '\"'\n    );\n    classifications = JSON.parse(s);\n  } catch(e2) {\n    // Attempt 3 — extract array boundaries only\n    try {\n      const start = cleaned.indexOf('[');\n      const end = cleaned.lastIndexOf(']');\n      classifications = JSON.parse(cleaned.slice(start, end + 1));\n    } catch(e3) {\n      throw new Error(`Parse failed at char 5620 area: ${cleaned.substring(5580, 5660)}`);\n    }\n  }\n}\n\nconst transactions = $('Prepare Classification Payload').first().json.transactions;\nconst classificationByIndex = {};\nclassifications.forEach(c => { classificationByIndex[c.index] = c; });\n\nconst enriched = transactions.map((tx, index) => {\n  const c = classificationByIndex[index];\n  return {\n    ...tx,\n    merchant_name: c ? c.merchant_name : null,\n    category: c ? c.category : 'other',\n    confidence_score: c ? c.confidence_score : 0.3\n  };\n});\n\nreturn enriched.map(tx => ({ json: tx }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3168,
+        928
+      ],
+      "id": "b4cbfcdc-ab85-4c9e-ae58-577823702e77",
+      "name": "Merge Classifications"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://zrkigpkdwkoaqmylexgr.supabase.co/rest/v1/rpc/upsert_merchant_map",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpya2lncGtkd2tvYXFteWxleGdyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg2MDk1NiwiZXhwIjoyMDk2NDM2OTU2fQ.yaR1fhbh1qndGgH1o43-L_Xk_8GxFXF_poYEzevZ3Ao"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpya2lncGtkd2tvYXFteWxleGdyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg2MDk1NiwiZXhwIjoyMDk2NDM2OTU2fQ.yaR1fhbh1qndGgH1o43-L_Xk_8GxFXF_poYEzevZ3Ao"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"p_user_id\": $json.user_id, \"p_raw_pattern\": $json.raw_pattern, \"p_merchant_name\": $json.merchant_name, \"p_category\": $json.category, \"p_occurrence_count\": $json.occurrence_count } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3584,
+        832
+      ],
+      "id": "ca83e679-9c38-4181-966f-a67d1e96dccd",
+      "name": "Upsert Merchant Map"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst { transactions, user_id, upload_id } = item.json;\n\n// Keep the payload lean — only what's needed for pattern detection\nconst txForPatterns = transactions.map(tx => ({\n  date: tx.transaction_date,\n  amount: tx.amount,\n  type: tx.type,\n  category: tx.category,\n  merchant_name: tx.merchant_name\n}));\n\nconst prompt = `You are a financial behavior analysis engine for a Nigerian user. You will receive a full month's (or statement period's) transactions. Detect behavioral patterns across them.\n\nReturn ONLY a JSON array, no markdown, no explanation. Each object must have:\n- pattern_type: one of \"income_signal\", \"spending_habit\", \"subscription\", \"anomaly\", \"savings_signal\"\n- pattern_key: a short identifier, e.g. \"salary_date\", \"dominant_category\", \"avg_monthly_food_spend\", \"recurring_sub:netflix\", \"overspending\"\n- pattern_value: an object with relevant details (amounts, dates, frequency — shape depends on pattern_key)\n- confidence: 0.0 to 1.0, how sure you are based on this single statement (one-time signals should be 0.5-0.7, clearly repeating ones 0.8+)\n\nWHAT TO LOOK FOR:\n- salary_date: find the credit transaction most likely to be salary (large, regular, labeled \"Payroll\"/\"Salary\"). Report typical_day and source.\n- dominant_category: which spending category has the highest total debit amount this period.\n- recurring subscriptions: any merchant appearing multiple times with similar amounts (subscriptions, airtime plans). One pattern per distinct subscription found.\n- overspending: if total debits exceed total credits this period, flag it.\n- savings_signal: if there's no transfer to a savings-like destination, note its absence as a low-confidence signal.\n\nOnly report patterns you actually find evidence for. Do not invent data.\n\nTRANSACTIONS:\n${JSON.stringify(txForPatterns)}`;\n\nconst payload = {\n  contents: [{ parts: [{ text: prompt }] }],\n  generationConfig: { temperature: 0.1 }\n};\n\nreturn [{\n  json: {\n    payload,\n    user_id,\n    upload_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        832
+      ],
+      "id": "6906988c-9447-499d-9c4a-d6fa603284e3",
+      "name": "Prepare Patterns Payload"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-goog-api-key",
+              "value": "AQ.Ab8RN6LNzh99kPM_MmESItKYcyhfg_VlzGwu--kA2XdS-Tmtvw"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.payload }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4048,
+        832
+      ],
+      "id": "ce9070ef-ca09-4e7b-9138-f579fad586ae",
+      "name": "Gemini: Detect Patterns"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst rawText = item.json.candidates[0].content.parts[0].text;\nconst cleaned = rawText.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\nconst patterns = JSON.parse(cleaned);\n\n// Same lesson as before — pull user_id/upload_id from the node that built\n// the payload, since the HTTP node's output only contains Gemini's response\nconst user_id = $('Prepare Patterns Payload').first().json.user_id;\n\nconst enriched = patterns.map(p => ({\n  user_id,\n  pattern_type: p.pattern_type,\n  pattern_key: p.pattern_key,\n  pattern_value: p.pattern_value,\n  confidence: p.confidence\n}));\n\nreturn enriched.map(p => ({ json: p }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4256,
+        832
+      ],
+      "id": "8f0f58f4-a220-4d5c-b4d0-8de89fca217f",
+      "name": "Parse Patterns"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://zrkigpkdwkoaqmylexgr.supabase.co/rest/v1/rpc/upsert_pattern",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpya2lncGtkd2tvYXFteWxleGdyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg2MDk1NiwiZXhwIjoyMDk2NDM2OTU2fQ.yaR1fhbh1qndGgH1o43-L_Xk_8GxFXF_poYEzevZ3Ao"
+            },
+            {
+              "name": "Authorization",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpya2lncGtkd2tvYXFteWxleGdyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDg2MDk1NiwiZXhwIjoyMDk2NDM2OTU2fQ.yaR1fhbh1qndGgH1o43-L_Xk_8GxFXF_poYEzevZ3Ao"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"p_user_id\": $json.user_id, \"p_pattern_type\": $json.pattern_type, \"p_pattern_key\": $json.pattern_key, \"p_pattern_value\": $json.pattern_value, \"p_confidence\": $json.confidence } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4464,
+        832
+      ],
+      "id": "0efa5639-9e55-4911-8eb7-c65d934b94a7",
+      "name": "Upsert Pattern"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst patterns = items.map(item => item.json);\n\nreturn [{\n  json: {\n    patterns\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4240,
+        608
+      ],
+      "id": "a293f2c1-dbc1-4b9d-9435-d78e2ca562d8",
+      "name": "Aggregate Patterns for Story"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst transactions = item.json.transactions;\n\n// Pull user_id/upload_id from the first transaction (they're the same across all)\nconst user_id = transactions[0].user_id;\nconst upload_id = transactions[0].upload_id;\n\n// Build a lightweight version for the prompt — strip fields Gemini doesn't need to see\nconst transactionsForPrompt = transactions.map((tx, index) => ({\n  index,\n  raw_description: tx.raw_description,\n  counterparty: tx.counterparty,\n  amount: tx.amount,\n  type: tx.type,\n  channel: tx.channel\n}));\n\nconst prompt = `You are a financial classification engine for Nigerian bank transactions. Below is a list of transactions. For EACH transaction (matched by its \"index\"), determine:\n\n1. merchant_name — a clean, human-readable merchant or counterparty name (e.g. \"DSTV\", \"Shoprite Lagos\", \"Salary - XYZ Global\"). If it's clearly a peer-to-peer transfer with no merchant, use the counterparty name as-is.\n2. category — one of: food, transport, bills, shopping, subscriptions, income, transfers, fees, airtime_data, savings, entertainment, other\n3. confidence_score — your confidence in this classification, 0.0 to 1.0\n\nTransactions are often vague bank statement text — use context (amount, channel, counterparty, recurring patterns across the list) to make the best inference.\n\nReturn ONLY a JSON array with this exact shape, no explanation, no markdown:\n[{\"index\": 0, \"merchant_name\": \"...\", \"category\": \"...\", \"confidence_score\": 0.9}, ...]\n\nTRANSACTIONS:\n${JSON.stringify(transactionsForPrompt)}`;\n\nconst payload = {\n  contents: [\n    {\n      parts: [\n        { text: prompt }\n      ]\n    }\n  ],\n  generationConfig: {\n    temperature: 0.1\n  }\n};\n\nreturn [{\n  json: {\n    payload,\n    transactions, // keep the full original array for merging later\n    user_id,\n    upload_id\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        224
+      ],
+      "id": "3bece92a-34a3-4fa3-aee1-7305526bf965",
+      "name": "Prepare Classification Payload.",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "transactions",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e0d58487-ea3f-40fe-84b4-74c8e30f3ad6",
+      "name": "Aggregate",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "58cffa6b-22a3-4992-a406-03dbd7be845d",
+              "leftValue": "= {{ $json.action }}",
+              "rightValue": "existing",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        688
+      ],
+      "id": "7187653e-9c17-4f47-b0dd-44f16b5a1c80",
+      "name": "User Exists?",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "tableId": "users",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $json.id }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.name }}"
+            },
+            {
+              "fieldId": "upload_count",
+              "fieldValue": "={{ $json.upload_count }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        704
+      ],
+      "id": "b2a98550-cc14-4dee-882c-bb5a2a92f537",
+      "name": "Create User",
+      "credentials": {
+        "supabaseApi": {
+          "id": "mjIBN0I2FsCXHKR7",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    id: $('Webhook').first().json.body.user_id,\n    name: $('Webhook').first().json.body.name || 'New User',\n    upload_count: 0,\n    first_upload_at: null,\n    preferred_currency: 'NGN',\n    is_new_user: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        480
+      ],
+      "id": "ddbbb266-b45a-4404-9183-3adacd7bd777",
+      "name": "Build New User Context",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst webhookBody = $(\"Webhook\").first().json.body;\nconst user_id = webhookBody.user_id;\n\nconst existingUser = item.json.id ? item.json : null;\n\nif (existingUser) {\n  return [\n    {\n      json: {\n        action: \"existing\",\n        id: existingUser.id,\n        name: existingUser.name,\n        email: existingUser.email,\n        upload_count: existingUser.upload_count || 0,\n        first_upload_at: existingUser.first_upload_at,\n        preferred_currency: existingUser.preferred_currency || \"NGN\",\n        is_new_user: false,\n      },\n    },\n  ];\n}\n\n// New user — pass through for creation\nreturn [\n  {\n    json: {\n      action: \"create\",\n      id: user_id,\n      name: webhookBody.name || \"New User\",\n      upload_count: 0,\n      first_upload_at: null,\n      preferred_currency: \"NGN\",\n      is_new_user: true,\n    },\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        688
+      ],
+      "id": "a3f5913f-4b77-4e50-8ded-618ef806adfd",
+      "name": "Resolve User"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nreturn [{\n  json: {\n    action: 'existing',\n    id: item.json.id,\n    name: item.json.name || 'New User',\n    email: null,\n    upload_count: 0,\n    first_upload_at: null,\n    preferred_currency: 'NGN',\n    is_new_user: true\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2224,
+        704
+      ],
+      "id": "c583d603-2e7d-4494-a19b-1e661393b548",
+      "name": "Build New User"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": " Fetch User Profile",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Merchant Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Gemini Payload": {
+      "main": [
+        [
+          {
+            "node": "Extract Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Extract Transactions": {
+      "main": [
+        [
+          {
+            "node": "Parse Transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Transactions": {
+      "main": [
+        [
+          {
+            "node": "Aggregate for Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate for Intelligence:": {
+      "main": [
+        [
+          {
+            "node": "Prepare Patterns Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Story Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Story": {
+      "main": [
+        [
+          {
+            "node": "Parse Story Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Story Response": {
+      "main": [
+        [
+          {
+            "node": "Prepare Insights Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Insights Row": {
+      "main": [
+        [
+          {
+            "node": "insights_history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "insights_history": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transactions": {
+      "main": [
+        [
+          {
+            "node": "Aggregate for Intelligence:",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Prepare Gemini Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Fetch User Profile": {
+      "main": [
+        [
+          {
+            "node": "Resolve User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Merchant Map": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate for Classification": {
+      "main": [
+        [
+          {
+            "node": "Prepare Classification Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve & Classify": {
+      "main": [
+        [
+          {
+            "node": "Merge Classifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Classification Payload": {
+      "main": [
+        [
+          {
+            "node": "Resolve & Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Merchant Map Upsert": {
+      "main": [
+        [
+          {
+            "node": "Upsert Merchant Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Classifications": {
+      "main": [
+        [
+          {
+            "node": "Prepare Merchant Map Upsert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "transactions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Patterns Payload": {
+      "main": [
+        [
+          {
+            "node": "Gemini: Detect Patterns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini: Detect Patterns": {
+      "main": [
+        [
+          {
+            "node": "Parse Patterns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Patterns": {
+      "main": [
+        [
+          {
+            "node": "Upsert Pattern",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate Patterns for Story",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Patterns for Story": {
+      "main": [
+        [
+          {
+            "node": "Prepare Story Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Exists?": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create User": {
+      "main": [
+        [
+          {
+            "node": "Build New User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve User": {
+      "main": [
+        [
+          {
+            "node": "User Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build New User": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "0AWTQN4YhYEldhqK",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "noma-automations001.app.n8n.cloud",
+            "user-agent": "PostmanRuntime/7.54.0",
+            "content-length": "163605",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "54.86.50.139",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "a1b7fea019d0e63b-IAD",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "multipart/form-data; boundary=----WebKitFormBoundary90Ar87KeHXSvR00d",
+            "postman-token": "e1fad016-3a03-42d9-9e6d-de11702e6500",
+            "x-forwarded-for": "54.86.50.139, 172.71.191.22",
+            "x-forwarded-host": "noma-automations001.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-swc-7-6c7676c857-cdzvt",
+            "x-is-trusted": "yes",
+            "x-real-ip": "54.86.50.139"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "user_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "upload_id": "8f1c2a3e-7b4d-4e8a-9c5f-1a2b3c4d5e6f"
+          },
+          "webhookUrl": "https://noma-automations001.app.n8n.cloud/webhook-test/tipupload",
+          "executionMode": "test"
+        },
+        "binary": {
+          "data0": {
+            "mimeType": "application/pdf",
+            "fileType": "pdf",
+            "fileExtension": "pdf",
+            "data": "filesystem-v2",
+            "fileName": "Statements download_20260130104759_7678a132-20cc-4bcb-98e0-5cc681e557ff.pdf",
+            "id": "filesystem-v2:workflows/QP2DQKpH319hOcvw/executions/temp/binary_data/227c66d7-6e58-4af4-a3fe-ce2baf36e39e",
+            "fileSize": "163 kB",
+            "bytes": 163089
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
