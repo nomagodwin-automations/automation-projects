@@ -1,0 +1,7 @@
+{
+  "name": "Real-Time Web Search Agent",
+  "projectFolder": "Real-Time Web Search Agent (2)",
+  "description": "Telegram assistant with live web search and AI responses",
+  "source": "../Real-Time Web Search Agent (2).json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}

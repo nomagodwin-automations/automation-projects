@@ -1,21 +1,20 @@
 # Mama Tee AI Concierge
 
-This project folder contains the documentation for the restaurant AI concierge workflow.
+This folder contains the Mama Tee AI Concierge and its project documentation together.
 
-## Workflow asset
+## Files
 
-The live workflow file for this project remains in the repository root as:
+- `Mama_Tee_AI_Concierge.json` — the workflow export for this automation.
+- `README.md` — overview of how the workflow operates.
 
-- `../Mama_Tee_AI_Concierge.json`
+## What it does
 
-## What this automation does
-
-- Receives call transcripts from a voice/call system via webhook.
-- Extracts structured customer and order details with AI.
-- Routes the interaction by intent such as order, reservation, enquiry, or escalation.
-- Detects returning customers.
-- Logs orders and reservations into Google Sheets.
+- Handles voice or call transcript intake.
+- Extracts structured customer and order data using AI.
+- Routes the interaction by intent such as order, reservation, escalation, or enquiry.
+- Stores orders and reservations in the relevant Sheets tabs.
+- Alerts the team via Telegram when a new order, reservation, or escalation arrives.
 
 ## Typical use case
 
-This workflow is designed for a restaurant or food brand that wants AI to handle customer calls, capture purchase intent, and keep structured records of orders and reservations.
+This automation is useful for a restaurant or food business wanting a fast AI-powered concierge and call handling workflow.

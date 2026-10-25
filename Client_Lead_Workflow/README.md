@@ -1,22 +1,20 @@
 # Client Lead Workflow
 
-This project folder contains the documentation for the client lead automation.
+This folder contains the Client Lead Workflow and its project documentation together.
 
-## Workflow asset
+## Files
 
-The live workflow file for this project remains in the repository root as:
+- `Client_Lead_Workflow.json` — the workflow export for this automation.
+- `README.md` — overview of how the workflow operates.
 
-- `../Client_Lead_Workflow.json`
+## What it does
 
-## What this automation does
-
-- Receives a webhook submission from a client inquiry form.
-- Maps the incoming fields to a clean lead record.
-- Validates required lead information such as name and email.
-- Appends valid leads to Google Sheets.
-- Logs invalid submissions to an error sheet.
-- Sends a Gmail notification when a valid lead arrives.
+- Receives webhook submissions for new client inquiries.
+- Maps contact fields into a clean lead record.
+- Validates required information such as full name and email.
+- Adds valid leads to the tracking sheet.
+- Logs invalid or incomplete data for follow-up.
 
 ## Typical use case
 
-This is used by consulting, agency, and service businesses to collect inbound client leads from a form or website and route them into a simple pipeline.
+This automation is used to convert inbound enquiries into a structured sales lead pipeline.

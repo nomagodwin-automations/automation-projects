@@ -1,0 +1,7 @@
+{
+  "name": "Mama Tee AI Concierge",
+  "projectFolder": "Mama_Tee_AI_Concierge",
+  "description": "AI-powered restaurant call concierge and order capture workflow",
+  "source": "../Mama_Tee_AI_Concierge.json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}

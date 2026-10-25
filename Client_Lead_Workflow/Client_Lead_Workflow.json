@@ -1,0 +1,7 @@
+{
+  "name": "Client Lead Workflow",
+  "projectFolder": "Client_Lead_Workflow",
+  "description": "Lead capture automation for inbound client enquiries",
+  "source": "../Client_Lead_Workflow.json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}

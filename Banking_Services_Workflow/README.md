@@ -1,21 +1,19 @@
 # Banking Services Workflow
 
-This project folder contains the documentation for the banking service automation.
+This folder contains the Banking Services Workflow and its project documentation together.
 
-## Workflow asset
+## Files
 
-The live workflow file for this project remains in the repository root as:
+- `Banking_Services_Workflow.json` — the workflow export for this automation.
+- `README.md` — overview of how the workflow operates.
 
-- `../Banking_Services_Workflow.json`
+## What it does
 
-## What this automation does
-
-- Captures customer banking service requests from a Tally form.
-- Extracts the customer’s full name, email, phone number, service type, and extra request details.
-- Routes requests by service category such as account opening, loans, transfers, and card issues.
-- Sends a personalized response through Gmail.
-- Stores the request in Google Sheets for tracking and follow-up.
+- Captures banking service requests from a Tally form.
+- Routes requests by service type such as account opening, loans, transfers, and card issues.
+- Sends a personalized email response to the customer.
+- Stores each request in Google Sheets for follow-up.
 
 ## Typical use case
 
-This is used for banking or financial service teams that want to collect service requests and respond quickly without manual queueing.
+This workflow is designed for financial institutions or service teams wanting a fast intake process for customer service requests.

@@ -1,0 +1,7 @@
+{
+  "name": "Banking Services Workflow",
+  "projectFolder": "Banking_Services_Workflow",
+  "description": "Banking service intake and routing workflow",
+  "source": "../Banking_Services_Workflow.json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}

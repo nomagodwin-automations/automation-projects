@@ -1,22 +1,20 @@
 # FahrenTemp Weather AI Agent
 
-This project folder contains the documentation for the Telegram weather assistant.
+This folder contains the FahrenTemp Weather AI Agent and its project documentation together.
 
-## Workflow asset
+## Files
 
-The live workflow file for this project remains in the repository root as:
+- `FahrenTemp_Weather_AI_Agent.json` — the workflow export for this automation.
+- `README.md` — overview of how the workflow operates.
 
-- `../FahrenTemp_Weather_AI_Agent.json`
+## What it does
 
-## What this automation does
-
-- Receives a Telegram message asking for weather information.
-- Uses an AI agent to answer in a conversational way.
-- Calls the WeatherAPI service for current and forecast data.
-- Stores short-term memory for better conversation flow.
-- Replies in Telegram with a friendly weather response.
-- Runs on a schedule to send automated weather updates.
+- Receives Telegram messages from users.
+- Uses an AI agent to understand a weather question.
+- Pulls live weather data for a city.
+- Responds to users in Telegram with summaries and forecast information.
+- Can send scheduled weather updates.
 
 ## Typical use case
 
-Useful for a personal weather bot, local business assistant, or Telegram-based information channel for a city or region.
+This automation is useful for a city-based weather bot or a personal automated weather assistant.

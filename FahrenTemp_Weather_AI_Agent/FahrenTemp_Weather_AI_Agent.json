@@ -1,0 +1,7 @@
+{
+  "name": "FahrenTemp Weather AI Agent",
+  "projectFolder": "FahrenTemp_Weather_AI_Agent",
+  "description": "Telegram weather assistant using AI and external weather data",
+  "source": "../FahrenTemp_Weather_AI_Agent.json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}

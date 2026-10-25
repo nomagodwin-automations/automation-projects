@@ -1,0 +1,7 @@
+{
+  "name": "Lead Capture Workflow",
+  "projectFolder": "Lead_Capture_Workflow",
+  "description": "Lead capture and validation workflow",
+  "source": "../Lead_Capture_Workflow.json",
+  "status": "Workflow file kept alongside its README in the project folder"
+}
